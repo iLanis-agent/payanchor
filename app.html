@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PayAnchor - Your Plan</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#0b0d14; color:#eaeef7; min-height:100vh; }
+  .wrap { max-width:920px; margin:0 auto; padding:36px 20px 80px; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+  .logo { font-weight:800; font-size:20px; }
+  .logo span { color:#93c5fd; }
+  .home { color:#8d98b5; text-decoration:none; font-size:14px; }
+  .home:hover { color:#fff; }
+  .panel { background:#12162a; border:1px solid #232a47; border-radius:16px; padding:22px; margin-bottom:22px; }
+  label { display:block; font-size:12.5px; font-weight:600; color:#8d98b5; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+  input, select { width:100%; background:#0b0d14; border:1px solid #2c3557; border-radius:10px; color:#eaeef7; padding:11px 12px; font-size:15px; outline:none; }
+  input:focus, select:focus { border-color:#3b82f6; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+  button.go { margin-top:18px; width:100%; background:linear-gradient(90deg,#3b82f6,#6366f1); border:0; color:#fff; font-size:16px; font-weight:700; padding:14px; border-radius:12px; cursor:pointer; }
+  .nums { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; text-align:center; }
+  .num { background:#0b0d14; border:1px solid #232a47; border-radius:14px; padding:18px 12px; }
+  .num .v { font-size:clamp(24px,4vw,32px); font-weight:800; letter-spacing:-.01em; }
+  .num .k { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-top:4px; }
+  .num.anchor .v { color:#93c5fd; }
+  .num.target .v { color:#6ee7b7; }
+  .num.floor .v { color:#fca5a5; }
+  .num .k { color:#8d98b5; }
+  .meta { margin-top:14px; font-size:14px; color:#a7b1ca; text-align:center; }
+  .verdict { font-size:20px; font-weight:800; }
+  .verdict.below-floor { color:#fca5a5; }
+  .verdict.below-target { color:#fcd34d; }
+  .verdict.at-target { color:#6ee7b7; }
+  .verdict.above-anchor { color:#93c5fd; }
+  .counter { font-size:30px; font-weight:800; color:#fff; margin:6px 0; }
+  .why { font-size:14.5px; color:#a7b1ca; line-height:1.55; }
+  .script-item { background:#0b0d14; border:1px solid #232a47; border-radius:12px; padding:16px; margin-top:12px; }
+  .script-item .t { font-size:13px; font-weight:800; color:#93c5fd; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .script-item .b { font-size:14.5px; line-height:1.6; color:#d9e0ef; font-style:italic; }
+  .script-item button { margin-top:10px; background:transparent; border:1px solid #2c3557; color:#93c5fd; font-size:12.5px; font-weight:700; padding:7px 14px; border-radius:8px; cursor:pointer; }
+  .levers { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .lever { font-size:13px; background:rgba(147,197,253,.08); border:1px solid #2c3557; color:#b9c6e4; padding:8px 13px; border-radius:999px; }
+  .hidden { display:none; }
+  .seg-label { margin-bottom:14px; font-size:14px; font-weight:700; color:#fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="logo">Pay<span>Anchor</span></div><a class="home" href="index.html">&#8592; Home</a></header>
+
+  <div class="panel">
+    <div class="seg-label">1. Your numbers</div>
+    <div class="grid">
+      <div><label for="cur">Current pay (yearly)</label><input type="number" id="cur" value="85000" step="1000"></div>
+      <div><label for="tgt">Target pay</label><input type="number" id="tgt" value="100000" step="1000"></div>
+      <div><label for="mlo">Market low</label><input type="number" id="mlo" value="90000" step="1000"></div>
+      <div><label for="mhi">Market high</label><input type="number" id="mhi" value="130000" step="1000"></div>
+      <div><label for="lev">Your leverage</label><select id="lev"><option value="1">Standard</option><option value="2">Strong (competing offer / rare skills)</option><option value="3">Exceptional</option></select></div>
+    </div>
+    <button class="go" id="build">Build my plan</button>
+  </div>
+
+  <div class="panel hidden" id="planPanel">
+    <div class="seg-label">2. Your three numbers</div>
+    <div class="nums">
+      <div class="num anchor"><div class="v" id="vAnchor"></div><div class="k">Anchor - open here</div></div>
+      <div class="num target"><div class="v" id="vTarget"></div><div class="k">Target - land here</div></div>
+      <div class="num floor"><div class="v" id="vFloor"></div><div class="k">Floor - walk below</div></div>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <div class="panel hidden" id="offerPanel">
+    <div class="seg-label">3. They offered - now what?</div>
+    <div class="grid" style="grid-template-columns:1fr auto; align-items:end">
+      <div><label for="offer">Their offer (yearly)</label><input type="number" id="offer" value="96000" step="500"></div>
+      <button class="go" id="respond" style="margin-top:0; width:auto; padding:11px 26px">Respond</button>
+    </div>
+    <div id="resp" style="margin-top:16px"></div>
+  </div>
+
+  <div class="panel hidden" id="scriptsPanel">
+    <div class="seg-label">4. Your scripts</div>
+    <div id="scripts"></div>
+  </div>
+
+  <div class="panel hidden" id="leversPanel">
+    <div class="seg-label">5. If base won't move</div>
+    <div class="levers" id="levers"></div>
+  </div>
+</div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = 'payanchor-settings';
+  var plan = null;
+
+  function fmt(n) { return n.toLocaleString(); }
+
+  function save() {
+    try {
+      localStorage.setItem(LS, JSON.stringify({
+        cur: $('cur').value, tgt: $('tgt').value, mlo: $('mlo').value,
+        mhi: $('mhi').value, lev: $('lev').value, offer: $('offer').value
+      }));
+    } catch (e) {}
+  }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem(LS) || 'null');
+      if (!s) return;
+      ['cur','tgt','mlo','mhi','lev','offer'].forEach(function (id) { if (s[id] != null) $(id).value = s[id]; });
+    } catch (e) {}
+  }
+
+  function build() {
+    plan = AnchorEngine.plan({
+      current: parseFloat($('cur').value) || 0,
+      target: parseFloat($('tgt').value) || 0,
+      marketLow: parseFloat($('mlo').value) || 0,
+      marketHigh: parseFloat($('mhi').value) || 0,
+      leverage: parseInt($('lev').value, 10)
+    });
+    save();
+    $('vAnchor').textContent = fmt(plan.anchor);
+    $('vTarget').textContent = fmt(plan.target);
+    $('vFloor').textContent = fmt(plan.floor);
+    var bits = [];
+    if (plan.upliftVsCurrent != null) bits.push('Target is +' + plan.upliftVsCurrent + '% over current pay');
+    if (plan.marketPct != null) bits.push('Target sits at the ' + plan.marketPct + 'th percentile of your market range');
+    $('meta').textContent = bits.join(' - ');
+    ['planPanel','offerPanel','scriptsPanel','leversPanel'].forEach(function (id) { $(id).classList.remove('hidden'); });
+    renderScripts();
+    renderLevers();
+    respond();
+  }
+
+  function respond() {
+    if (!plan) return;
+    var offer = parseFloat($('offer').value) || 0;
+    if (!(offer > 0)) { $('resp').innerHTML = ''; return; }
+    var r = AnchorEngine.respond(offer, plan);
+    save();
+    $('resp').innerHTML = '<div class="verdict ' + r.scenario + '">' + r.verdict + '</div>'
+      + (r.scenario === 'above-anchor'
+          ? '<div class="why" style="margin-top:8px">' + r.why + '</div>'
+          : '<div class="counter">Counter at ' + fmt(r.counter) + '</div><div class="why">' + r.why + '</div>');
+  }
+
+  function renderScripts() {
+    $('scripts').innerHTML = AnchorEngine.SCRIPT_KINDS.map(function (k) {
+      var body = AnchorEngine.script(k.id, plan);
+      return '<div class="script-item"><div class="t">' + k.label + '</div><div class="b">&ldquo;' + body + '&rdquo;</div>'
+        + '<button data-s="' + k.id + '">Copy</button></div>';
+    }).join('');
+  }
+
+  function renderLevers() {
+    $('levers').innerHTML = AnchorEngine.LEVERS.map(function (l) { return '<span class="lever">' + l + '</span>'; }).join('');
+  }
+
+  $('build').addEventListener('click', build);
+  $('respond').addEventListener('click', respond);
+  $('offer').addEventListener('input', respond);
+  ['cur','tgt','mlo','mhi','lev'].forEach(function (id) { $(id).addEventListener('input', function () { if (plan) build(); }); });
+
+  $('scripts').addEventListener('click', function (e) {
+    if (e.target.tagName !== 'BUTTON') return;
+    var text = AnchorEngine.script(e.target.getAttribute('data-s'), plan);
+    var done = function () { e.target.textContent = 'Copied'; setTimeout(function () { e.target.textContent = 'Copy'; }, 1400); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+    else done();
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
